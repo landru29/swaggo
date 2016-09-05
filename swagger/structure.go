@@ -9,6 +9,7 @@ type Swagger struct {
     Host     string   `json:"host"`
     BasePath string   `json:"basePath"`
     Info     Info     `json:"info"`
+    Paths    Path     `json:"paths"`
 }
 
 //Info is the swagger info structure
@@ -31,3 +32,17 @@ type License struct {
 type Contact struct {
     Email string `json:"email"`
 }
+
+// RouteDef is the swagger route definition
+type RouteDef struct {
+    Description string   `json:"description"`
+    Consumes    []string `json:"consumes"`
+    Produces    []string `json:"produces"`
+    Tags        []string `json:"tags"`
+}
+
+// Route is the swagger routes list (get => ..., post => ...)
+type Route map[string]RouteDef
+
+// Path is the swagget path (path => Route)
+type Path map[string]Route
