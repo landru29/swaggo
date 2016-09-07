@@ -7,6 +7,12 @@ import (
     "strings"
 )
 
+//FileAnalyze is the analyse of a source file
+type FileAnalyze struct {
+    Package  string
+    Comments []string
+}
+
 type commentStruct struct {
     Value string
     Pos   int
@@ -27,9 +33,9 @@ func (a byIndex) Less(i, j int) bool {
 }
 
 // ParseComments parse all the comments
-func ParseComments(filename string) (commentStr []string, err error) {
+func ParseComments(filename string) (analyse FileAnalyze, err error) {
     comments := []commentStruct{}
-    commentStr = []string{}
+    analyse.Comments = []string{}
     dat, err := ioutil.ReadFile(filename)
     contentFile := string(dat)
 
@@ -55,11 +61,52 @@ func ParseComments(filename string) (commentStr []string, err error) {
         }
     }
 
+    // package
+    packageRegExp := regexp.MustCompile(`package\s*([^\n\s]*)`)
+    packageFind := packageRegExp.FindStringSubmatch(contentFile)
+    if len(packageFind) > 1 {
+        analyse.Package = packageFind[1]
+    }
+
     // compile all
     sort.Sort(byIndex(comments))
     for _, comment := range comments {
-        commentStr = append(commentStr, comment.Value)
+        analyse.Comments = append(analyse.Comments, comment.Value)
     }
 
+    return
+}
+
+// MatchField try to get a field comment
+func MatchField(commentStr string, name string) (values []string, ok bool) {
+    findRegExp := regexp.MustCompile(`^\s*@` + name + `(.*)`)
+    params := findRegExp.FindStringSubmatch(commentStr)
+    ok = (len(params) == 2)
+    if ok {
+        values = strings.Fields(params[1])
+    }
+    return
+}
+
+// GetFields search for all fields in a list of comments
+func GetFields(commentStrList []string, name string) (values [][]string) {
+    values = [][]string{}
+    for _, commentStr := range commentStrList {
+        lineValues, ok := MatchField(commentStr, name)
+        if ok {
+            values = append(values, lineValues)
+        }
+    }
+    return
+}
+
+// GetField search for a field in a list of comments
+func GetField(commentStrList []string, name string) (values []string, ok bool) {
+    result := GetFields(commentStrList, name)
+    ok = false
+    if len(result) > 0 {
+        ok = true
+        values = result[0]
+    }
     return
 }
