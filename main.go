@@ -88,11 +88,7 @@ func mainApp() (err error) {
                     }
                 }
             }
-
-            fmt.Printf("############ %s ############ %s #\n", filename, fileAnalyze.Package)
-            for _, comment := range fileAnalyze.Comments {
-                fmt.Println(comment)
-            }
+            fmt.Printf("%v\n", fileAnalyze.GatheredComments)
         }
     }
 
