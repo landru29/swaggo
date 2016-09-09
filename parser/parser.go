@@ -10,9 +10,9 @@ import (
 
 //FileAnalyze is the analyse of a source file
 type FileAnalyze struct {
-    Package          string
-    Comments         []string
-    GatheredComments [][]string
+    Package       string
+    FileComments  []string
+    BlockComments [][]string
 }
 
 type commentStruct struct {
@@ -74,7 +74,7 @@ func gatherComments(comments []commentStruct) (result [][]string) {
 func ParseComments(filename string) (analyse FileAnalyze, err error) {
     fmt.Printf("############ %s ############", filename)
     comments := []commentStruct{}
-    analyse.Comments = []string{}
+    analyse.FileComments = []string{}
     dat, err := ioutil.ReadFile(filename)
     contentFile := string(dat)
 
@@ -126,10 +126,10 @@ func ParseComments(filename string) (analyse FileAnalyze, err error) {
     sort.Sort(byIndex(comments))
     for _, comment := range comments {
         fmt.Printf("# %d - %s\n", comment.Line, comment.Value)
-        analyse.Comments = append(analyse.Comments, comment.Value)
+        analyse.FileComments = append(analyse.FileComments, comment.Value)
     }
 
-    analyse.GatheredComments = gatherComments(comments)
+    analyse.BlockComments = gatherComments(comments)
 
     return
 }

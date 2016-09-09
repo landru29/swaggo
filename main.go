@@ -5,7 +5,6 @@ import (
     "os"
     "path/filepath"
     "regexp"
-    "strings"
 
     "github.com/landru29/swaggo/parser"
     "github.com/landru29/swaggo/swagger"
@@ -13,9 +12,8 @@ import (
     "github.com/spf13/viper"
 )
 
-/* Gros comments
-sur deux lignes */
-
+/* Main Command to parse
+   command line */
 var mainCommand = &cobra.Command{
     Use:   "api-go",
     Short: "API by noopy",
@@ -31,7 +29,7 @@ var mainCommand = &cobra.Command{
     },
 }
 
-// ceci est un test
+// Build the list of files to scan
 func getFileList(searchDir string) (fileList []string, err error) {
     fileList = []string{}
     var goFileRegExp = regexp.MustCompile(`\.go$`)
@@ -45,54 +43,21 @@ func getFileList(searchDir string) (fileList []string, err error) {
     return
 }
 
+/**
+ * The Main application really starts here
+ */
 func mainApp() (err error) {
-    swagger := swagger.NewSwagger()
+    swag := swagger.NewSwagger()
     filenames, err := getFileList(".")
     if err == nil {
         for _, filename := range filenames {
             fileAnalyze, _ := parser.ParseComments(filename)
-            if fileAnalyze.Package == "main" {
-                if APIVersion, ok := parser.GetField(fileAnalyze.Comments, "APIVersion"); ok {
-                    swagger.Info.Version = strings.Join(APIVersion, "")
-                }
-                if APITitle, ok := parser.GetField(fileAnalyze.Comments, "APITitle"); ok {
-                    swagger.Info.Title = strings.Join(APITitle, " ")
-                }
-                if APIDescription, ok := parser.GetField(fileAnalyze.Comments, "APIDescription"); ok {
-                    swagger.Info.Description = strings.Join(APIDescription, " ")
-                }
-                if contact, ok := parser.GetField(fileAnalyze.Comments, "Contact"); ok {
-                    swagger.Info.Contact.Email = strings.Join(contact, ",")
-                }
-                if termOfServiceURL, ok := parser.GetField(fileAnalyze.Comments, "TermsOfServiceUrl"); ok {
-                    swagger.Info.TermsOfService = termOfServiceURL[0]
-                }
-                if license, ok := parser.GetField(fileAnalyze.Comments, "License"); ok {
-                    swagger.Info.License.Name = strings.Join(license, " ")
-                }
-                if licenseURL, ok := parser.GetField(fileAnalyze.Comments, "LicenseUrl"); ok {
-                    swagger.Info.License.URL = licenseURL[0]
-                }
-                produces := parser.GetFields(fileAnalyze.Comments, "APIProduces")
-                if len(produces) > 0 {
-                    swagger.Produces = []string{}
-                    for _, produce := range produces {
-                        swagger.Produces = append(swagger.Produces, strings.Join(produce, " "))
-                    }
-                }
-                consumes := parser.GetFields(fileAnalyze.Comments, "APIConsumes")
-                if len(produces) > 0 {
-                    swagger.Consumes = []string{}
-                    for _, consume := range consumes {
-                        swagger.Consumes = append(swagger.Consumes, strings.Join(consume, " "))
-                    }
-                }
-            }
-            fmt.Printf("%v\n", fileAnalyze.GatheredComments)
+            swagger.GeneralInformations(&fileAnalyze, &swag)
+            fmt.Printf("%v\n", fileAnalyze.BlockComments)
         }
     }
 
-    err = swagger.Save()
+    err = swag.Save()
     return
 }
 
