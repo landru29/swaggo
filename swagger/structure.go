@@ -115,7 +115,7 @@ type ParameterStruct struct {
 // OperationStruct is the swagger route definition
 type OperationStruct struct {
 	Tags         []string           `json:"tags,omitempty"`
-	Summary      []string           `json:"summary,omitempty"`
+	Summary      string             `json:"summary,omitempty"`
 	Description  string             `json:"description,omitempty"`
 	ExternalDocs ExternalDocsStruct `json:"externalDocs,omitempty"`
 	OperationID  string             `json:"operationId,omitempty"`
