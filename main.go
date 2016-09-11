@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"regexp"
+	"strings"
 
-	"github.com/landru29/swaggo/parser"
 	"github.com/landru29/swaggo/swagger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,42 +26,15 @@ var mainCommand = &cobra.Command{
 	},
 }
 
-// Build the list of files to scan
-func getFileList(searchDir string) (fileList []string, err error) {
-	fileList = []string{}
-	var goFileRegExp = regexp.MustCompile(`\.go$`)
-	var notHiddentDirRegExp = regexp.MustCompile(`\/\.\w+|^\.\w+`)
-	err = filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && goFileRegExp.MatchString(f.Name()) && !notHiddentDirRegExp.MatchString(path) {
-			fileList = append(fileList, path)
-		}
-		return nil
-	})
-	return
-}
-
 /**
  * The Main application really starts here
  */
 func mainApp() (err error) {
-	swag := swagger.NewSwagger()
-	filenames, err := getFileList(".")
-	if err == nil {
-		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
-			swagger.GeneralInformations(&fileAnalyze, &swag)
-		}
-		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
-			swagger.SubRoute(&fileAnalyze, &swag)
-		}
-		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
-			swagger.Route(&fileAnalyze, &swag)
-		}
-	}
-
-	err = swag.Save()
+	err = swagger.ProcessProject(
+		viper.GetString("project_folder"),
+		viper.GetString("api_host"),
+		viper.GetString("api_basepath"),
+		strings.Split(viper.GetString("api_scheme"), ","))
 	return
 }
 
@@ -86,4 +56,7 @@ func init() {
 
 	flags.String("output", "./swagger.json", "Output filename")
 	viper.BindPFlag("output", flags.Lookup("output"))
+
+	flags.String("project-folder", ".", "Folder to scan")
+	viper.BindPFlag("project_folder", flags.Lookup("project-folder"))
 }
