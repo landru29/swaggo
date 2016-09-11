@@ -1,7 +1,6 @@
 package swagger
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/landru29/swaggo/parser"
@@ -29,13 +28,11 @@ func oneRoute(comments []string, swag *Swagger) {
 		if len(router) < 2 {
 			return
 		}
-		methodRegExp := regexp.MustCompile(`^\[(\w+)\]$`)
-		methodMatch := methodRegExp.FindStringSubmatch(router[1])
-		if len(methodMatch) < 2 {
+		method, _, elts, hasRouter := parser.DescID(router)
+		if !hasRouter {
 			return
 		}
-		method := strings.ToUpper(methodMatch[1])
-		path := router[0]
+		path := elts[0]
 
 		if _, ok := swag.Paths[path]; !ok {
 			swag.Paths[path] = PathItemStruct{}
@@ -48,15 +45,16 @@ func oneRoute(comments []string, swag *Swagger) {
 			if description, ok := parser.GetField(comments, "Description"); ok {
 				operation.Description = strings.Join(description, " ")
 			}
+
 			if title, ok := parser.GetField(comments, "Title"); ok {
 				operation.Summary = strings.Join(title, " ")
 			}
-			tags := parser.GetFields(comments, "Tags")
-			if len(tags) > 0 {
-				operation.Tags = []string{}
-				for _, tag := range tags {
-					for _, pieceOfTag := range tag {
-						operation.Tags = append(operation.Tags, pieceOfTag)
+
+			resources := parser.GetFields(comments, "Resource")
+			for _, resource := range resources {
+				if len(resource) > 0 {
+					if tag, ok := GetTag(swag, resource[0]); ok {
+						operation.Tags = append(operation.Tags, tag.Name)
 					}
 				}
 			}

@@ -91,6 +91,10 @@ type SecurityStruct struct {
 
 // TagStruct is the swagger tag structure
 type TagStruct struct {
+	Name         string             `json:"Name,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	ExternalDocs ExternalDocsStruct `json:"externalDocs,omitempty"`
+	Resource     string             `json:"-"`
 }
 
 //LicenseStruct is the swagger licence structure

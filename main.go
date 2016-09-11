@@ -53,7 +53,10 @@ func mainApp() (err error) {
 		for _, filename := range filenames {
 			fileAnalyze, _ := parser.ParseComments(filename)
 			swagger.GeneralInformations(&fileAnalyze, &swag)
-			//fmt.Printf("%v\n", fileAnalyze.BlockComments)
+		}
+		for _, filename := range filenames {
+			fileAnalyze, _ := parser.ParseComments(filename)
+			swagger.SubRoute(&fileAnalyze, &swag)
 		}
 		for _, filename := range filenames {
 			fileAnalyze, _ := parser.ParseComments(filename)
