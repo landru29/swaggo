@@ -14,7 +14,7 @@ import (
 // @Failure 401 {object} string "Access denied"
 // @Failure 404 {object} string "Not Found"
 // @Resource /users
-// @Router /users/:userId.json [get]
+// @Router /:userId.json [get]
 
 // Route search for new routes
 func Route(fileAnalyze *parser.FileAnalyze, swag *Swagger) {
@@ -34,13 +34,23 @@ func oneRoute(comments []string, swag *Swagger) {
 		}
 		path := elts[0]
 
+		var operation OperationStruct
+		operation = OperationStruct{}
+
+		if resource, ok := parser.GetField(comments, "Resource"); ok {
+			if len(resource) > 0 {
+				path = resource[0] + path
+				if tag, ok := GetTag(swag, resource[0]); ok {
+					operation.Tags = append(operation.Tags, tag.Name)
+				}
+			}
+		}
+
 		if _, ok := swag.Paths[path]; !ok {
 			swag.Paths[path] = PathItemStruct{}
 		}
 
-		var operation OperationStruct
 		if _, ok := swag.Paths[path][method]; !ok {
-			operation = OperationStruct{}
 
 			if description, ok := parser.GetField(comments, "Description"); ok {
 				operation.Description = strings.Join(description, " ")
@@ -50,14 +60,6 @@ func oneRoute(comments []string, swag *Swagger) {
 				operation.Summary = strings.Join(title, " ")
 			}
 
-			resources := parser.GetFields(comments, "Resource")
-			for _, resource := range resources {
-				if len(resource) > 0 {
-					if tag, ok := GetTag(swag, resource[0]); ok {
-						operation.Tags = append(operation.Tags, tag.Name)
-					}
-				}
-			}
 			produces := parser.GetFields(comments, "Produces")
 			if len(produces) > 0 {
 				operation.Produces = []string{}
