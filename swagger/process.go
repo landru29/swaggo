@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/landru29/swaggo/parser"
+	"github.com/landru29/swaggo/descriptor"
 )
 
 // Build the list of files to scan
@@ -28,15 +28,15 @@ func ProcessProject(searchDir string, host string, basePath string, schemes []st
 	filenames, err := getFileList(searchDir)
 	if err == nil {
 		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
+			fileAnalyze, _ := descriptor.ParseComments(filename)
 			GeneralInformations(&fileAnalyze, &swag)
 		}
 		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
+			fileAnalyze, _ := descriptor.ParseComments(filename)
 			SubRoute(&fileAnalyze, &swag)
 		}
 		for _, filename := range filenames {
-			fileAnalyze, _ := parser.ParseComments(filename)
+			fileAnalyze, _ := descriptor.ParseComments(filename)
 			Route(&fileAnalyze, &swag)
 		}
 	}

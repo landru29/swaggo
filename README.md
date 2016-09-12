@@ -20,8 +20,8 @@ go build
 Here is an example of the general information of your API. These comments must be in the `main` package
 ```
 // @APIVersion 1.0.0
-// @APITitle Landru parser
-// @APIDescription This is an example of the swagger parser
+// @APITitle Landru descriptor
+// @APIDescription This is an example of the swagger descriptor
 // @Contact cmeichel@free.fr
 // @TermsOfServiceUrl https://www.teamwork.com/termsofservice
 // @License BSD
