@@ -1,188 +1,192 @@
 package parser
 
 import (
-	"io/ioutil"
-	"regexp"
-	"sort"
-	"strings"
+    "io/ioutil"
+    "regexp"
+    "sort"
+    "strings"
 )
 
 //FileAnalyze is the analyse of a source file
 type FileAnalyze struct {
-	Package       string
-	FileComments  []string
-	BlockComments [][]string
+    Package       string
+    FileComments  []string
+    BlockComments [][]string
 }
 
 type commentStruct struct {
-	Value string
-	Line  int
+    Value string
+    Line  int
 }
 
 type byIndex []commentStruct
 
 func (a byIndex) Len() int {
-	return len(a)
+    return len(a)
 }
 
 func (a byIndex) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
+    a[i], a[j] = a[j], a[i]
 }
 
 func (a byIndex) Less(i, j int) bool {
-	return a[i].Line < a[j].Line
+    return a[i].Line < a[j].Line
 }
 
 // get the line of a comment
 func getLine(globalPos int, indexes [][]int) int {
-	if len(indexes) > 0 {
-		if globalPos <= indexes[0][0] {
-			return 1
-		}
-		for index := 1; index < len(indexes); index++ {
-			if (globalPos <= indexes[index][0]) && (globalPos >= indexes[index-1][1]) {
-				return index + 1
-			}
-		}
-	}
-	return 0
+    if len(indexes) > 0 {
+        if globalPos <= indexes[0][0] {
+            return 1
+        }
+        for index := 1; index < len(indexes); index++ {
+            if (globalPos <= indexes[index][0]) && (globalPos >= indexes[index-1][1]) {
+                return index + 1
+            }
+        }
+    }
+    return 0
 }
 
 func gatherComments(comments []commentStruct) (result [][]string) {
-	result = [][]string{}
-	cursor := -10
-	var block []string
-	sort.Sort(byIndex(comments))
-	for _, comment := range comments {
-		if comment.Line != cursor+1 {
-			if cursor != -10 {
-				result = append(result, block)
-			}
-			block = []string{}
-		}
-		block = append(block, comment.Value)
-		cursor = comment.Line
-	}
-	if len(block) > 0 {
-		result = append(result, block)
-	}
-	return
+    result = [][]string{}
+    cursor := -10
+    var block []string
+    sort.Sort(byIndex(comments))
+    for _, comment := range comments {
+        if comment.Line != cursor+1 {
+            if cursor != -10 {
+                result = append(result, block)
+            }
+            block = []string{}
+        }
+        block = append(block, comment.Value)
+        cursor = comment.Line
+    }
+    if len(block) > 0 {
+        result = append(result, block)
+    }
+    return
 }
 
 // ParseComments parse all the comments
 func ParseComments(filename string) (analyse FileAnalyze, err error) {
-	//fmt.Printf("############ %s ############", filename)
-	comments := []commentStruct{}
-	analyse.FileComments = []string{}
-	dat, err := ioutil.ReadFile(filename)
-	contentFile := string(dat)
+    //fmt.Printf("############ %s ############", filename)
+    comments := []commentStruct{}
+    analyse.FileComments = []string{}
+    dat, err := ioutil.ReadFile(filename)
+    contentFile := string(dat)
 
-	// get position of carriage return
-	carriageReturnRegExp := regexp.MustCompile(`\n`)
-	carriageReturnIndex := carriageReturnRegExp.FindAllStringIndex(contentFile, -1)
+    // get position of carriage return
+    carriageReturnRegExp := regexp.MustCompile(`\n`)
+    carriageReturnIndex := carriageReturnRegExp.FindAllStringIndex(contentFile, -1)
 
-	// Inline comments
-	inlinecommentStructRegExp := regexp.MustCompile(`\/\/\s?(.*)`)
-	inlinecommentStruct := inlinecommentStructRegExp.FindAllString(contentFile, -1)
-	inlinecommentStructIndex := inlinecommentStructRegExp.FindAllStringIndex(contentFile, -1)
-	for key, comment := range inlinecommentStruct {
-		filtered := inlinecommentStructRegExp.FindStringSubmatch(comment)
-		comments = append(
-			comments,
-			commentStruct{
-				filtered[1],
-				getLine(inlinecommentStructIndex[key][0], carriageReturnIndex),
-			})
-	}
+    // Inline comments
+    inlinecommentStructRegExp := regexp.MustCompile(`\/\/\s?(.*)`)
+    inlinecommentStruct := inlinecommentStructRegExp.FindAllString(contentFile, -1)
+    inlinecommentStructIndex := inlinecommentStructRegExp.FindAllStringIndex(contentFile, -1)
+    for key, comment := range inlinecommentStruct {
+        filtered := inlinecommentStructRegExp.FindStringSubmatch(comment)
+        comments = append(
+            comments,
+            commentStruct{
+                filtered[1],
+                getLine(inlinecommentStructIndex[key][0], carriageReturnIndex),
+            })
+    }
 
-	// block comments
-	blockcommentStructRegExp := regexp.MustCompile(`\/\*(\*([^\/])|[^*])*\*\/`)
-	blockcommentStruct := blockcommentStructRegExp.FindAllStringSubmatch(contentFile, -1)
-	blockcommentStructIndex := blockcommentStructRegExp.FindAllStringIndex(contentFile, -1)
-	for key, comment := range blockcommentStruct {
-		commentStr := strings.Replace(comment[0], "/"+"*", "", -1)
-		commentStr = strings.Replace(commentStr, "*"+"/", "", -1)
-		lines := strings.Split(commentStr, "\n")
-		for index, line := range lines {
-			comments = append(
-				comments,
-				commentStruct{
-					line,
-					getLine(blockcommentStructIndex[key][0], carriageReturnIndex) + index,
-				})
-		}
-	}
+    // block comments
+    blockcommentStructRegExp := regexp.MustCompile(`\/\*(\*([^\/])|[^*])*\*\/`)
+    blockcommentStruct := blockcommentStructRegExp.FindAllStringSubmatch(contentFile, -1)
+    blockcommentStructIndex := blockcommentStructRegExp.FindAllStringIndex(contentFile, -1)
+    for key, comment := range blockcommentStruct {
+        commentStr := strings.Replace(comment[0], "/"+"*", "", -1)
+        commentStr = strings.Replace(commentStr, "*"+"/", "", -1)
+        lines := strings.Split(commentStr, "\n")
+        for index, line := range lines {
+            comments = append(
+                comments,
+                commentStruct{
+                    line,
+                    getLine(blockcommentStructIndex[key][0], carriageReturnIndex) + index,
+                })
+        }
+    }
 
-	// package
-	packageRegExp := regexp.MustCompile(`package\s*([^\n\s]*)`)
-	packageFind := packageRegExp.FindStringSubmatch(contentFile)
-	if len(packageFind) > 1 {
-		analyse.Package = packageFind[1]
-		//fmt.Printf(" %s #\n", packageFind[1])
-	}
+    // package
+    packageRegExp := regexp.MustCompile(`package\s*([^\n\s]*)`)
+    packageFind := packageRegExp.FindStringSubmatch(contentFile)
+    if len(packageFind) > 1 {
+        analyse.Package = packageFind[1]
+        //fmt.Printf(" %s #\n", packageFind[1])
+    }
 
-	// compile all
-	sort.Sort(byIndex(comments))
-	for _, comment := range comments {
-		//fmt.Printf("# %d - %s\n", comment.Line, comment.Value)
-		analyse.FileComments = append(analyse.FileComments, comment.Value)
-	}
+    // compile all
+    sort.Sort(byIndex(comments))
+    for _, comment := range comments {
+        //fmt.Printf("# %d - %s\n", comment.Line, comment.Value)
+        analyse.FileComments = append(analyse.FileComments, comment.Value)
+    }
 
-	analyse.BlockComments = gatherComments(comments)
+    analyse.BlockComments = gatherComments(comments)
 
-	return
+    return
 }
 
 // MatchField try to get a field comment
 func MatchField(commentStr string, name string) (values []string, ok bool) {
-	findRegExp := regexp.MustCompile(`^\s*@` + name + `(.*)`)
-	params := findRegExp.FindStringSubmatch(commentStr)
-	ok = (len(params) == 2)
-	if ok {
-		values = strings.Fields(params[1])
-	}
-	return
+    findRegExp := regexp.MustCompile(`^\s*@` + name + `(.*)`)
+    params := findRegExp.FindStringSubmatch(commentStr)
+    ok = (len(params) == 2)
+    if ok {
+        splitRegExp := regexp.MustCompile(`"[^"]+"|[^\s"]+`)
+        splits := splitRegExp.FindAllStringSubmatch(params[1], -1)
+        for _, p := range splits {
+            values = append(values, p[0])
+        }
+    }
+    return
 }
 
 // GetFields search for all fields in a list of comments
 func GetFields(commentStrList []string, name string) (values [][]string) {
-	values = [][]string{}
-	for _, commentStr := range commentStrList {
-		lineValues, ok := MatchField(commentStr, name)
-		if ok {
-			values = append(values, lineValues)
-		}
-	}
-	return
+    values = [][]string{}
+    for _, commentStr := range commentStrList {
+        lineValues, ok := MatchField(commentStr, name)
+        if ok {
+            values = append(values, lineValues)
+        }
+    }
+    return
 }
 
 // GetField search for a field in a list of comments
 func GetField(commentStrList []string, name string) (values []string, ok bool) {
-	result := GetFields(commentStrList, name)
-	ok = false
-	if len(result) > 0 {
-		ok = true
-		values = result[0]
-	}
-	return
+    result := GetFields(commentStrList, name)
+    ok = false
+    if len(result) > 0 {
+        ok = true
+        values = result[0]
+    }
+    return
 }
 
 // DescID decode a comment line like "hello world [id]"
 func DescID(comment []string) (id string, description string, comments []string, ok bool) {
-	ok = false
-	if len(comment) < 1 {
-		return
-	}
+    ok = false
+    if len(comment) < 1 {
+        return
+    }
 
-	resStr := comment[len(comment)-1]
-	resRegExp := regexp.MustCompile(`^\[([^\]]+)\]$`)
-	resMatch := resRegExp.FindStringSubmatch(resStr)
-	if len(resMatch) < 2 {
-		return
-	}
-	id = resMatch[1]
-	comments = comment[:len(comment)-1]
-	description = strings.Join(comments, " ")
-	ok = true
-	return
+    resStr := comment[len(comment)-1]
+    resRegExp := regexp.MustCompile(`^\[([^\]]+)\]$`)
+    resMatch := resRegExp.FindStringSubmatch(resStr)
+    if len(resMatch) < 2 {
+        return
+    }
+    id = resMatch[1]
+    comments = comment[:len(comment)-1]
+    description = strings.Join(comments, " ")
+    ok = true
+    return
 }

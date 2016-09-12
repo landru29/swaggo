@@ -1,9 +1,9 @@
 package swagger
 
 import (
-	"strings"
+    "strings"
 
-	"github.com/landru29/swaggo/parser"
+    "github.com/landru29/swaggo/parser"
 )
 
 // @Title Get Users Information
@@ -18,64 +18,80 @@ import (
 
 // Route search for new routes
 func Route(fileAnalyze *parser.FileAnalyze, swag *Swagger) {
-	for _, block := range fileAnalyze.BlockComments {
-		oneRoute(block, swag)
-	}
+    for _, block := range fileAnalyze.BlockComments {
+        oneRoute(block, swag)
+    }
 }
 
 func oneRoute(comments []string, swag *Swagger) {
-	if router, ok := parser.GetField(comments, "Router"); ok {
-		if len(router) < 2 {
-			return
-		}
-		method, _, elts, hasRouter := parser.DescID(router)
-		if !hasRouter {
-			return
-		}
-		path := elts[0]
+    if router, ok := parser.GetField(comments, "Router"); ok {
+        if len(router) < 2 {
+            return
+        }
+        method, _, elts, hasRouter := parser.DescID(router)
+        if !hasRouter {
+            return
+        }
+        path := elts[0]
 
-		var operation OperationStruct
-		operation = OperationStruct{}
+        var operation OperationStruct
+        operation = OperationStruct{}
 
-		if resource, ok := parser.GetField(comments, "Resource"); ok {
-			if len(resource) > 0 {
-				path = resource[0] + path
-				if tag, ok := GetTag(swag, resource[0]); ok {
-					operation.Tags = append(operation.Tags, tag.Name)
-				}
-			}
-		}
+        if resource, ok := parser.GetField(comments, "Resource"); ok {
+            if len(resource) > 0 {
+                path = resource[0] + path
+                if tag, ok := GetTag(swag, resource[0]); ok {
+                    operation.Tags = append(operation.Tags, tag.Name)
+                }
+            }
+        }
 
-		if _, ok := swag.Paths[path]; !ok {
-			swag.Paths[path] = PathItemStruct{}
-		}
+        if _, ok := swag.Paths[path]; !ok {
+            swag.Paths[path] = PathItemStruct{}
+        }
 
-		if _, ok := swag.Paths[path][method]; !ok {
+        if _, ok := swag.Paths[path][method]; !ok {
 
-			if description, ok := parser.GetField(comments, "Description"); ok {
-				operation.Description = strings.Join(description, " ")
-			}
+            if description, ok := parser.GetField(comments, "Description"); ok {
+                operation.Description = strings.Join(description, " ")
+            }
 
-			if title, ok := parser.GetField(comments, "Title"); ok {
-				operation.Summary = strings.Join(title, " ")
-			}
+            if title, ok := parser.GetField(comments, "Title"); ok {
+                operation.Summary = strings.Join(title, " ")
+            }
 
-			produces := parser.GetFields(comments, "Produces")
-			if len(produces) > 0 {
-				operation.Produces = []string{}
-				for _, produce := range produces {
-					operation.Produces = append(operation.Produces, strings.Join(produce, " "))
-				}
-			}
-			consumes := parser.GetFields(comments, "Accept")
-			if len(consumes) > 0 {
-				operation.Consumes = []string{}
-				for _, consume := range consumes {
-					operation.Consumes = append(operation.Consumes, strings.Join(consume, " "))
-				}
-			}
+            produces := parser.GetFields(comments, "Produces")
+            if len(produces) > 0 {
+                operation.Produces = []string{}
+                for _, produce := range produces {
+                    operation.Produces = append(operation.Produces, strings.Join(produce, " "))
+                }
+            }
+            consumes := parser.GetFields(comments, "Accept")
+            if len(consumes) > 0 {
+                operation.Consumes = []string{}
+                for _, consume := range consumes {
+                    operation.Consumes = append(operation.Consumes, strings.Join(consume, " "))
+                }
+            }
+            params := parser.GetFields(comments, "Param")
+            if len(params) > 0 {
+                operation.Parameters = []ParameterStruct{}
+                for _, param := range params {
+                    if len(param) > 3 {
+                        p := ParameterStruct{
+                            Name:        param[0],
+                            In:          param[1],
+                            Description: strings.Trim(param[len(param)-1], `"`),
+                            Required:    param[len(param)-2] == "true",
+                        }
+                        operation.Parameters = append(operation.Parameters, p)
+                    }
 
-			swag.Paths[path][method] = operation
-		}
-	}
+                }
+            }
+
+            swag.Paths[path][method] = operation
+        }
+    }
 }
