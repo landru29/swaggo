@@ -45,7 +45,7 @@ func main() {
 
 func init() {
 	flags := mainCommand.Flags()
-	flags.String("api-host", "localhost", "API host")
+	flags.String("api-host", "localhost:3000", "API host")
 	viper.BindPFlag("api_host", flags.Lookup("api-host"))
 
 	flags.String("api-scheme", "http", "http|https separated by a comma")
