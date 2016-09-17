@@ -147,6 +147,7 @@ type ParameterStruct struct {
 	In          string        `json:"in,omitempty"` //Possible values are "query", "header", "path", "formData" or "body".
 	Description string        `json:"description,omitempty"`
 	Required    bool          `json:"required,omitempty"`
+	Type        string        `json:"type,omitempty"` //The value MUST be one of "string", "number", "integer", "boolean", "array" or "file"
 	Schema      *SchemaStruct `json:"schema,omitempty"` //If in is "body"
 }
 

@@ -9,7 +9,7 @@ import (
 // @Title Get Users Information
 // @Description Get Users Information
 // @Accept application/json
-// @Param userId path int true "User ID"
+// @Param userId path integer true "User ID"
 // @Success 200 {object} string "Success"
 // @Failure 401 {object} string "Access denied"
 // @Failure 404 {object} string "Not Found"
@@ -82,6 +82,7 @@ func oneRoute(comments []string, swag *Swagger) {
                         p := ParameterStruct{
                             Name:        param[0],
                             In:          param[1],
+                            Type:        param[2],
                             Description: strings.Trim(param[len(param)-1], `"`),
                             Required:    param[len(param)-2] == "true",
                         }
