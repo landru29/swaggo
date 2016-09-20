@@ -7,7 +7,7 @@ import (
 
 // MatchField try to get a field comment
 func MatchField(commentStr string, name string) (values []string, ok bool) {
-	findRegExp := regexp.MustCompile(`^\s*@` + name + `(.*)`)
+	findRegExp := regexp.MustCompile(`(?i)^\s*@` + name + `(.*)`)
 	params := findRegExp.FindStringSubmatch(commentStr)
 	ok = (len(params) == 2)
 	if ok {
