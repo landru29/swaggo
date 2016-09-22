@@ -16,14 +16,17 @@ go get
 go build
 ```
 
+## This documentation
+Tables are describing the directives. *Occurence* columns means how many times this must appear in a block of comments
+
 ## General information
 
 ### Directive descriptions
 
 | Directive | occurence | Description|
 |----------------------|-----|----------------|
+| ``@APITitle {title string}``| 1 | API title |
 | ``@APIVersion {version string}``| 0/1 | API version |
-| ``@APITitle {title string}``| 0/1 | API title |
 | ``@APIDescription {description string}`` | 0/1 | API description |
 | ``@APIConsumes {content-type string}`` | 0/n | What consumes the API |
 | ``@APIProduces {content-type string}`` | 0/n | What produces the API |
@@ -33,7 +36,7 @@ go build
 | ``@LicenseUrl {url string}`` | 0/1 | URL of the licence |
 
 ### Example
-Here is an example of the general information of your API. These comments must be in the `main` package
+Here is an example of the general information of your API.
 ```
 // @APIVersion 1.0.0
 // @APITitle Landru descriptor

@@ -8,12 +8,11 @@ import (
 
 // GeneralInformations retrieves general informations
 func GeneralInformations(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
-	if fileAnalyze.Package == "main" {
+	if APITitle, ok := descriptor.GetField(fileAnalyze.FileComments, "APITitle"); ok {
+		swag.Info.Title = strings.Join(APITitle, " ")
+
 		if APIVersion, ok := descriptor.GetField(fileAnalyze.FileComments, "APIVersion"); ok {
 			swag.Info.Version = strings.Join(APIVersion, "")
-		}
-		if APITitle, ok := descriptor.GetField(fileAnalyze.FileComments, "APITitle"); ok {
-			swag.Info.Title = strings.Join(APITitle, " ")
 		}
 		if APIDescription, ok := descriptor.GetField(fileAnalyze.FileComments, "APIDescription"); ok {
 			swag.Info.Description = strings.Join(APIDescription, " ")
@@ -44,6 +43,7 @@ func GeneralInformations(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
 				swag.Consumes = append(swag.Consumes, strings.Join(consume, " "))
 			}
 		}
-		swag.Paths = make(PathsStruct)
 	}
+
+	swag.Paths = make(PathsStruct)
 }

@@ -9,7 +9,6 @@ import (
 
 //FileAnalyze is the analyse of a source file
 type FileAnalyze struct {
-	Package       string
 	FileComments  []string
 	BlockComments [][]string
 }
@@ -111,14 +110,6 @@ func ParseComments(filename string) (analyse FileAnalyze, err error) {
 					getLine(blockcommentStructIndex[key][0], carriageReturnIndex) + index,
 				})
 		}
-	}
-
-	// package
-	packageRegExp := regexp.MustCompile(`package\s*([^\n\s]*)`)
-	packageFind := packageRegExp.FindStringSubmatch(contentFile)
-	if len(packageFind) > 1 {
-		analyse.Package = packageFind[1]
-		//fmt.Printf(" %s #\n", packageFind[1])
 	}
 
 	// compile all
