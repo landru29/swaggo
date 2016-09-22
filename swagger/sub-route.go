@@ -1,6 +1,10 @@
 package swagger
 
-import "github.com/landru29/swaggo/descriptor"
+import (
+	"errors"
+
+	"github.com/landru29/swaggo/descriptor"
+)
 
 // @SubApi Users [/users]
 // @SubApi Allows you access to different features of the users, login, get status etc [/users]
@@ -8,38 +12,26 @@ import "github.com/landru29/swaggo/descriptor"
 // @SubApi [/admin]
 // @Resource /user
 
-type subRoute struct {
-	Name        string
-	Description string
-	Resource    string
-	parent      *subRoute
-	ParentStr   string
-}
-
 // GetSubRoute search for new routes
-// TODO: build a structure of resources
-// TODO: Build the Tags
 // TODO: tool to search resource
-// TODO: add ID on resources (to diff 2 sub resource with same name)
 func GetSubRoute(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
-	subroutes := []subRoute{}
 	for _, block := range fileAnalyze.BlockComments {
-		oneSubRoute(block, &subroutes)
+		oneSubRoute(block, swag)
 	}
-	for _, sub := range subroutes {
-		tag := TagStruct{
-			Name:        sub.Name,
-			Description: sub.Description,
-			Resource:    sub.Resource,
+	for _, sub := range swag.AllSubRoutes {
+		if len(sub.Name) > 0 {
+			swag.Tags = append(swag.Tags, sub)
 		}
-		swag.Tags = append(swag.Tags, tag)
+		if parentTag, ok := GetTag(swag, sub.Resource); ok {
+			sub.Parent = parentTag
+		}
 	}
 }
 
 // GetTag find a tag by resource
-func GetTag(swag *Swagger, resource string) (tag TagStruct, ok bool) {
+func GetTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
 	ok = false
-	for _, tagIt := range swag.Tags {
+	for _, tagIt := range swag.AllSubRoutes {
 		if tagIt.Resource == resource {
 			tag = tagIt
 			ok = true
@@ -49,11 +41,26 @@ func GetTag(swag *Swagger, resource string) (tag TagStruct, ok bool) {
 	return
 }
 
-func oneSubRoute(comments []string, subs *[]subRoute) {
-	tag := subRoute{}
+// GetPath get the path of a subroute
+func (tag *TagStruct) GetPath() (path string, err error) {
+	path = ""
+	current := tag
+	for i := 0; i < 50; i++ {
+		if current == nil {
+			return
+		}
+		path = current.Router + path
+		current = current.Parent
+	}
+	err = errors.New("Infinite loop")
+	return
+}
+
+func oneSubRoute(comments []string, swag *Swagger) {
+	tag := new(TagStruct)
 	subAPI := descriptor.GetFields(comments, "SubApi")
 	if parentRes, ok := descriptor.GetField(comments, "Resource"); ok {
-		tag.ParentStr = parentRes[0]
+		tag.ParentResource = parentRes[0]
 	}
 	for _, lineComments := range subAPI {
 		if res, str, _, ok := descriptor.DescID(lineComments); ok {
@@ -62,12 +69,16 @@ func oneSubRoute(comments []string, subs *[]subRoute) {
 					tag.Name = str
 				}
 				tag.Resource = res
+				tag.Router = res
 			} else if tag.Resource == res {
 				tag.Description = str
 			}
 		}
 	}
+	if router, ok := descriptor.GetField(comments, "Router"); ok {
+		tag.Router = router[0]
+	}
 	if len(tag.Resource) > 0 {
-		*subs = append(*subs, tag)
+		swag.AllSubRoutes = append(swag.AllSubRoutes, tag)
 	}
 }

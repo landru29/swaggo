@@ -15,7 +15,8 @@ type Swagger struct {
 	Definitions         DefinitionsStruct         `json:"definitions,omitempty"`
 	Parameters          []ParameterStruct         `json:"parameters,omitempty"`
 	Responses           ResponsesStruct           `json:"responses,omitempty"`
-	Tags                []TagStruct               `json:"tags,omitempty"`
+	Tags                []*TagStruct              `json:"tags,omitempty"`
+	AllSubRoutes        []*TagStruct              `json:"-"`
 	ExternalDocs        ExternalDocsStruct        `json:"externalDocs,omitempty"`
 	SecurityDefinitions SecurityDefinitionsStruct `json:"securityDefinitions,omitempty"`
 	Security            []SecurityStruct          `json:"security,omitempty"`
@@ -124,10 +125,13 @@ type SecurityDefinitionsStruct struct {
 
 // TagStruct is the swagger tag structure
 type TagStruct struct {
-	Name         string             `json:"Name,omitempty"`
-	Description  string             `json:"description,omitempty"`
-	ExternalDocs ExternalDocsStruct `json:"externalDocs,omitempty"`
-	Resource     string             `json:"-"`
+	Name           string             `json:"Name,omitempty"`
+	Description    string             `json:"description,omitempty"`
+	ExternalDocs   ExternalDocsStruct `json:"externalDocs,omitempty"`
+	Resource       string             `json:"-"`
+	Router         string             `json:"-"`
+	Parent         *TagStruct         `json:"-"`
+	ParentResource string             `json:"-"`
 }
 
 //LicenseStruct is the swagger licence structure
@@ -147,7 +151,7 @@ type ParameterStruct struct {
 	In          string        `json:"in,omitempty"` //Possible values are "query", "header", "path", "formData" or "body".
 	Description string        `json:"description,omitempty"`
 	Required    bool          `json:"required,omitempty"`
-	Type        string        `json:"type,omitempty"` //The value MUST be one of "string", "number", "integer", "boolean", "array" or "file"
+	Type        string        `json:"type,omitempty"`   //The value MUST be one of "string", "number", "integer", "boolean", "array" or "file"
 	Schema      *SchemaStruct `json:"schema,omitempty"` //If in is "body"
 }
 

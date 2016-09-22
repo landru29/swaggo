@@ -55,9 +55,13 @@ func oneRoute(comments []string, swag *Swagger) {
 
 		if resource, ok := descriptor.GetField(comments, "Resource"); ok {
 			if len(resource) > 0 {
-				path = resource[0] + path
 				if tag, ok := GetTag(swag, resource[0]); ok {
 					operation.Tags = append(operation.Tags, tag.Name)
+					if subRoutePath, err := tag.GetPath(); err == nil {
+						path = subRoutePath + path
+					} else {
+						path = subRoutePath + path + "[infiniteLoop]"
+					}
 				}
 			}
 		}
