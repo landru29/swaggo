@@ -47,6 +47,7 @@ func oneRoute(comments []string, swag *Swagger) {
 		if !hasRouter {
 			return
 		}
+
 		path := replaceParams(elts[0])
 
 		var operation OperationStruct
@@ -66,6 +67,9 @@ func oneRoute(comments []string, swag *Swagger) {
 		}
 
 		if _, ok := swag.Paths[path][method]; !ok {
+			if _, ok := descriptor.GetField(comments, "Deprecated"); ok {
+				operation.Deprecated = true
+			}
 
 			if description, ok := descriptor.GetField(comments, "Description"); ok {
 				operation.Description = strings.Join(description, " ")

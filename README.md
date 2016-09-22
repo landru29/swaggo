@@ -17,6 +17,22 @@ go build
 ```
 
 ## General information
+
+### Directive descriptions
+
+| Directive | occurence | Description|
+|----------------------|-----|----------------|
+| ``@APIVersion {version string}``| 0/1 | API version |
+| ``@APITitle {title string}``| 0/1 | API title |
+| ``@APIDescription {description string}`` | 0/1 | API description |
+| ``@APIConsumes {content-type string}`` | 0/n | What consumes the API |
+| ``@APIProduces {content-type string}`` | 0/n | What produces the API |
+| ``@Contact {email string}`` | 0/1 | API contact |
+| ``@TermsOfServiceUrl {url string}`` | 0/1 | URL or the terms of service |
+| ``@License {licence string}`` | 0/1 | Type of licence |
+| ``@LicenseUrl {url string}`` | 0/1 | URL of the licence |
+
+### Example
 Here is an example of the general information of your API. These comments must be in the `main` package
 ```
 // @APIVersion 1.0.0
@@ -35,16 +51,45 @@ Other mendatory parameters are passed through the command line:
 ./swaggo --api-basepath /v1 --api-host localhost:8080 --api-scheme http --ouptut my-swagger.json
 ```
 
-## Routes
-### Sub-routes
-Sub-routes are declared like following (comments must be in the same block). In this exemple, `/user` is an internal reference (@Resource)
+## Sub-routes
+Sub-routes are declared like following (comments must be in the same block).
+
+### Directive descriptions
+
+| Directive | occurence | Description|
+|----------------------|-----|----------------|
+| ``@SubApi {title string} [{resource string}]``| 1 | Declare a sub-route |
+| ``@SubApi {description string}``| 0/1 | Sub-route description |
+
+### Example
+
+In this exemple, `/user` is an internal reference (@Resource)
+
 ```
 // @SubApi Users [/users]
 // @SubApi Allows you access to different features of the users , login , get status etc [/users]
 ```
 
-### Routes
+## Routes
+
+### Directive descriptions
+
+| Directive | occurence | Description|
+|----------------------|-----|----------------|
+| ``@Title {title string}``| 1 | Route title |
+| ``@Description {description string}`` | 1 | Route description |
+| ``@Deprecated`` | 0/1 | Makes the route deprecated |
+| ``@Accept {content-type string}`` | 0/n | What consumes the route |
+| ``@Produces {content-type string}`` | 0/n | What produces the route |
+| ``@Success {code int} {type string} {description string}`` | 0/n | Success return code |
+| ``@Failure {code int} {type string} {description string}`` | 0/n | Failure return code |
+| ``@Resource {subRoute string}`` | 1 | Sub-route |
+| ``@Router {uri string} [{method string}]`` | 1 | Method and uri |
+
+### Example
+
 Routes are declared like this (Note that there is the @Resource `/user`):
+
 ```
 // @Title Get Users Information
 // @Description Get Users Information
