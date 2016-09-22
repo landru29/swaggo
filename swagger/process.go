@@ -33,7 +33,7 @@ func ProcessProject(searchDir string, host string, basePath string, schemes []st
 		}
 		for _, filename := range filenames {
 			fileAnalyze, _ := descriptor.ParseComments(filename)
-			SubRoute(&fileAnalyze, &swag)
+			GetSubRoute(&fileAnalyze, &swag)
 		}
 		for _, filename := range filenames {
 			fileAnalyze, _ := descriptor.ParseComments(filename)
