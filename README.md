@@ -75,6 +75,16 @@ In this exemple, `/user` is an internal reference (@Resource)
 // @SubApi Allows you access to different features of the users , login , get status etc [/users]
 ```
 
+You can also create a child sub-route with no name (so that, it will not be register as tag).
+
+```
+// @SubApi [my-recource]
+// @Router /my/great/uri
+// @Resource /user
+```
+
+Now, declaring a route with resource *my-recource* will build a path */user/my/great/uri*
+
 ## Routes
 
 ### Directive descriptions
