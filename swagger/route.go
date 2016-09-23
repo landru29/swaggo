@@ -50,8 +50,6 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 			return
 		}
 
-		method = strings.ToUpper(method)
-
 		path := elts[0]
 
 		var operation OperationStruct
@@ -75,7 +73,7 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 		path = replaceParams(path)
 
 		if verbose {
-			fmt.Printf("# ROUTE [%s] %s\n", method, path)
+			fmt.Printf("# ROUTE [%s] %s\n", strings.ToUpper(method), path)
 		}
 
 		if _, ok := swag.Paths[path]; !ok {
