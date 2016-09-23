@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -18,9 +19,9 @@ import (
 // @Router /:userId.json [get]
 
 // Route search for new routes
-func Route(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
+func (swag *Swagger) Route(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	for _, block := range fileAnalyze.BlockComments {
-		oneRoute(block, swag)
+		swag.oneRoute(block, verbose)
 	}
 }
 
@@ -38,8 +39,9 @@ func replaceParams(in string) (out string) {
 	return
 }
 
-func oneRoute(comments []string, swag *Swagger) {
+func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 	if router, ok := descriptor.GetField(comments, "Router"); ok {
+
 		if len(router) < 2 {
 			return
 		}
@@ -48,6 +50,8 @@ func oneRoute(comments []string, swag *Swagger) {
 			return
 		}
 
+		method = strings.ToUpper(method)
+
 		path := elts[0]
 
 		var operation OperationStruct
@@ -55,13 +59,13 @@ func oneRoute(comments []string, swag *Swagger) {
 
 		if resource, ok := descriptor.GetField(comments, "Resource"); ok {
 			if len(resource) > 0 {
-				if tag, ok := GetTag(swag, resource[0]); ok {
+				if tag, ok := swag.GetTag(resource[0]); ok {
 					if subRoutePath, err := tag.GetPath(); err == nil {
 						path = subRoutePath + path
 					} else {
 						path = subRoutePath + path + "[infiniteLoop]"
 					}
-					if namedTag, ok := GetNamedTag(swag, resource[0]); ok {
+					if namedTag, ok := swag.GetNamedTag(resource[0]); ok {
 						operation.Tags = append(operation.Tags, namedTag.Name)
 					}
 				}
@@ -69,6 +73,10 @@ func oneRoute(comments []string, swag *Swagger) {
 		}
 
 		path = replaceParams(path)
+
+		if verbose {
+			fmt.Printf("# ROUTE [%s] %s\n", method, path)
+		}
 
 		if _, ok := swag.Paths[path]; !ok {
 			swag.Paths[path] = PathItemStruct{}
@@ -116,6 +124,16 @@ func oneRoute(comments []string, swag *Swagger) {
 						operation.Parameters = append(operation.Parameters, p)
 					}
 
+				}
+			}
+
+			if verbose {
+				fmt.Printf("    * Title: %s\n", operation.Summary)
+				fmt.Printf("    * Description: %s\n", operation.Description)
+				fmt.Printf("    * Produces: %v\n", operation.Produces)
+				fmt.Printf("    * consumes: %v\n", operation.Consumes)
+				for _, param := range operation.Parameters {
+					fmt.Printf("    * Parameter: [%s] in (%s) type {%s}\n", param.Name, param.In, param.Type)
 				}
 			}
 

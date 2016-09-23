@@ -34,7 +34,9 @@ func mainApp() (err error) {
 		viper.GetString("project_folder"),
 		viper.GetString("api_host"),
 		viper.GetString("api_basepath"),
-		strings.Split(viper.GetString("api_scheme"), ","))
+		strings.Split(viper.GetString("api_scheme"), ","),
+		viper.GetBool("verbose"),
+	)
 	return
 }
 
@@ -59,4 +61,7 @@ func init() {
 
 	flags.String("project-folder", ".", "Folder to scan")
 	viper.BindPFlag("project_folder", flags.Lookup("project-folder"))
+
+	flags.Bool("verbose", false, "Be verbose")
+	viper.BindPFlag("verbose", flags.Lookup("verbose"))
 }

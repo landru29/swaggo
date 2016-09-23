@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/landru29/swaggo/descriptor"
 )
@@ -9,34 +10,48 @@ import (
 // @SubApi Users [/users]
 // @SubApi Allows you access to different features of the users, login, get status etc [/users]
 
-// @SubApi [/admin]
+// @SubApi [bob]
 // @Resource /user
+// @Router /admin
 
 // GetSubRoute search for new routes
 // TODO: tool to search resource
-func GetSubRoute(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
-	//fmt.Printf("#### Scanning %s\n", fileAnalyze.Filename)
+func (swag *Swagger) GetSubRoute(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	for _, block := range fileAnalyze.BlockComments {
-		oneSubRoute(block, swag)
+		swag.oneSubRoute(block, verbose)
 	}
 }
 
 // CompileSubRoutes build a structure with sub-routes
-func (swag *Swagger) CompileSubRoutes() {
+func (swag *Swagger) CompileSubRoutes(verbose bool) {
+	if verbose {
+		fmt.Printf("# COMPILE SUB-ROUTES\n")
+	}
 	for _, sub := range swag.AllSubRoutes {
-		//fmt.Printf("Parent: %s - Current: %s\n", sub.ParentResource, sub.Resource)
+		if verbose {
+			if len(sub.ParentResource) > 0 {
+				fmt.Printf("    * [%s] has Parent [%s]\n", sub.Resource, sub.ParentResource)
+			} else {
+				fmt.Printf("    * [%s] has not parent\n", sub.Resource)
+			}
+		}
 		if len(sub.Name) > 0 {
 			swag.Tags = append(swag.Tags, sub)
+			if verbose {
+				fmt.Printf("        + Named Tag [%s] appended to dictionnary\n", sub.Name)
+			}
 		}
-		if parentTag, ok := GetTag(swag, sub.ParentResource); ok {
-			//fmt.Printf("* Found Res %s\n", parentTag.Resource)
+		if parentTag, ok := swag.GetTag(sub.ParentResource); ok {
+			if verbose {
+				fmt.Printf("        + Linking Res Parent [%s] <=> Current: [%s]\n", parentTag.Resource, sub.ParentResource)
+			}
 			sub.Parent = parentTag
 		}
 	}
 }
 
 // GetTag find a tag by resource
-func GetTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
+func (swag *Swagger) GetTag(resource string) (tag *TagStruct, ok bool) {
 	ok = false
 	if len(resource) == 0 {
 		return
@@ -52,8 +67,8 @@ func GetTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
 }
 
 // GetNamedTag find the first named tag by resource
-func GetNamedTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
-	tag, ok = GetTag(swag, resource)
+func (swag *Swagger) GetNamedTag(resource string) (tag *TagStruct, ok bool) {
+	tag, ok = swag.GetTag(resource)
 	if ok {
 		for i := 0; i < 50; i++ {
 			if len(tag.Name) > 0 {
@@ -82,9 +97,15 @@ func (tag *TagStruct) GetPath() (path string, err error) {
 	return
 }
 
-func oneSubRoute(comments []string, swag *Swagger) {
+func (swag *Swagger) oneSubRoute(comments []string, verbose bool) {
 	tag := new(TagStruct)
 	subAPI := descriptor.GetFields(comments, "SubApi")
+	if len(subAPI) == 0 {
+		return
+	}
+	if verbose {
+		fmt.Printf("# SUB-ROUTE")
+	}
 	if parentRes, ok := descriptor.GetField(comments, "Resource"); ok {
 		tag.ParentResource = parentRes[0]
 	}
@@ -103,6 +124,13 @@ func oneSubRoute(comments []string, swag *Swagger) {
 	}
 	if router, ok := descriptor.GetField(comments, "Router"); ok {
 		tag.Router = router[0]
+	}
+	if verbose {
+		fmt.Printf(" [%s]\n", tag.Resource)
+		fmt.Printf("    * Name: %s\n", tag.Name)
+		fmt.Printf("    * Description: %s\n", tag.Description)
+		fmt.Printf("    * URI: %s\n", tag.Router)
+		fmt.Printf("    * Child of: %s\n", tag.ParentResource)
 	}
 	if len(tag.Resource) > 0 {
 		swag.AllSubRoutes = append(swag.AllSubRoutes, tag)

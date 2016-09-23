@@ -23,20 +23,20 @@ func getFileList(searchDir string) (fileList []string, err error) {
 }
 
 // ProcessProject is the main processor
-func ProcessProject(searchDir string, host string, basePath string, schemes []string) (err error) {
-	swag := NewSwagger(host, basePath, schemes)
+func ProcessProject(searchDir string, host string, basePath string, schemes []string, verbose bool) (err error) {
+	swag := NewSwagger(host, basePath, schemes, verbose)
 	filenames, err := getFileList(searchDir)
 	if err == nil {
 		for _, filename := range filenames {
 			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
-				GeneralInformations(&fileAnalyze, &swag)
-				GetSubRoute(&fileAnalyze, &swag)
+				swag.GeneralInformations(&fileAnalyze, verbose)
+				swag.GetSubRoute(&fileAnalyze, verbose)
 			}
 		}
-		(&swag).CompileSubRoutes()
+		swag.CompileSubRoutes(verbose)
 		for _, filename := range filenames {
 			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
-				Route(&fileAnalyze, &swag)
+				swag.Route(&fileAnalyze, verbose)
 			}
 		}
 	}

@@ -1,14 +1,18 @@
 package swagger
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/landru29/swaggo/descriptor"
 )
 
 // GeneralInformations retrieves general informations
-func GeneralInformations(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
+func (swag *Swagger) GeneralInformations(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	if APITitle, ok := descriptor.GetField(fileAnalyze.FileComments, "APITitle"); ok {
+		if verbose {
+			fmt.Printf("# GENERAL INFORMATION [%s]\n", fileAnalyze.Filename)
+		}
 		swag.Info.Title = strings.Join(APITitle, " ")
 
 		if APIVersion, ok := descriptor.GetField(fileAnalyze.FileComments, "APIVersion"); ok {
@@ -42,6 +46,17 @@ func GeneralInformations(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
 			for _, consume := range consumes {
 				swag.Consumes = append(swag.Consumes, strings.Join(consume, " "))
 			}
+		}
+		if verbose {
+			fmt.Printf("    * Title: %s\n", swag.Info.Title)
+			fmt.Printf("    * Version: %s\n", swag.Info.Version)
+			fmt.Printf("    * Description: %s\n", swag.Info.Description)
+			fmt.Printf("    * Contact: %s\n", swag.Info.Contact.Email)
+			fmt.Printf("    * TermsOfService: %s\n", swag.Info.TermsOfService)
+			fmt.Printf("    * Licence: %s\n", swag.Info.License.Name)
+			fmt.Printf("    * Licence URL: %s\n", swag.Info.License.URL)
+			fmt.Printf("    * Produces: %v\n", swag.Produces)
+			fmt.Printf("    * consumes: %v\n", swag.Consumes)
 		}
 	}
 
