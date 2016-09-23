@@ -15,14 +15,21 @@ import (
 // GetSubRoute search for new routes
 // TODO: tool to search resource
 func GetSubRoute(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
+	//fmt.Printf("#### Scanning %s\n", fileAnalyze.Filename)
 	for _, block := range fileAnalyze.BlockComments {
 		oneSubRoute(block, swag)
 	}
+}
+
+// CompileSubRoutes build a structure with sub-routes
+func (swag *Swagger) CompileSubRoutes() {
 	for _, sub := range swag.AllSubRoutes {
+		//fmt.Printf("Parent: %s - Current: %s\n", sub.ParentResource, sub.Resource)
 		if len(sub.Name) > 0 {
 			swag.Tags = append(swag.Tags, sub)
 		}
-		if parentTag, ok := GetTag(swag, sub.Resource); ok {
+		if parentTag, ok := GetTag(swag, sub.ParentResource); ok {
+			//fmt.Printf("* Found Res %s\n", parentTag.Resource)
 			sub.Parent = parentTag
 		}
 	}
@@ -31,11 +38,30 @@ func GetSubRoute(fileAnalyze *descriptor.FileAnalyze, swag *Swagger) {
 // GetTag find a tag by resource
 func GetTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
 	ok = false
+	if len(resource) == 0 {
+		return
+	}
 	for _, tagIt := range swag.AllSubRoutes {
 		if tagIt.Resource == resource {
 			tag = tagIt
 			ok = true
 			return
+		}
+	}
+	return
+}
+
+// GetNamedTag find the first named tag by resource
+func GetNamedTag(swag *Swagger, resource string) (tag *TagStruct, ok bool) {
+	tag, ok = GetTag(swag, resource)
+	if ok {
+		for i := 0; i < 50; i++ {
+			if len(tag.Name) > 0 {
+				return
+			}
+			if tag != nil {
+				tag = tag.Parent
+			}
 		}
 	}
 	return

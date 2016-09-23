@@ -9,6 +9,7 @@ import (
 
 //FileAnalyze is the analyse of a source file
 type FileAnalyze struct {
+	Filename      string
 	FileComments  []string
 	BlockComments [][]string
 }
@@ -70,6 +71,7 @@ func gatherComments(comments []commentStruct) (result [][]string) {
 
 // ParseComments parse all the comments
 func ParseComments(filename string) (analyse FileAnalyze, err error) {
+	analyse.Filename = filename
 	//fmt.Printf("############ %s ############", filename)
 	comments := []commentStruct{}
 	analyse.FileComments = []string{}

@@ -64,6 +64,7 @@ Sub-routes are declared like following (comments must be in the same block).
 | ``@SubApi {title string} [{resource string}]``| 1 | Declare a sub-route |
 | ``@SubApi {description string}``| 0/1 | Sub-route description |
 | ``@Router {route string}``| 0/1 | Sub-route value; if not defined route will be the resource |
+| ``@Resource {subRoute string}`` | 0/1 | Parent sub-route |
 
 ### Example
 

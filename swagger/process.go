@@ -28,16 +28,16 @@ func ProcessProject(searchDir string, host string, basePath string, schemes []st
 	filenames, err := getFileList(searchDir)
 	if err == nil {
 		for _, filename := range filenames {
-			fileAnalyze, _ := descriptor.ParseComments(filename)
-			GeneralInformations(&fileAnalyze, &swag)
+			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
+				GeneralInformations(&fileAnalyze, &swag)
+				GetSubRoute(&fileAnalyze, &swag)
+			}
 		}
+		(&swag).CompileSubRoutes()
 		for _, filename := range filenames {
-			fileAnalyze, _ := descriptor.ParseComments(filename)
-			GetSubRoute(&fileAnalyze, &swag)
-		}
-		for _, filename := range filenames {
-			fileAnalyze, _ := descriptor.ParseComments(filename)
-			Route(&fileAnalyze, &swag)
+			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
+				Route(&fileAnalyze, &swag)
+			}
 		}
 	}
 

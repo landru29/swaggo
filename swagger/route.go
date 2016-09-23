@@ -48,7 +48,7 @@ func oneRoute(comments []string, swag *Swagger) {
 			return
 		}
 
-		path := replaceParams(elts[0])
+		path := elts[0]
 
 		var operation OperationStruct
 		operation = OperationStruct{}
@@ -56,15 +56,19 @@ func oneRoute(comments []string, swag *Swagger) {
 		if resource, ok := descriptor.GetField(comments, "Resource"); ok {
 			if len(resource) > 0 {
 				if tag, ok := GetTag(swag, resource[0]); ok {
-					operation.Tags = append(operation.Tags, tag.Name)
 					if subRoutePath, err := tag.GetPath(); err == nil {
 						path = subRoutePath + path
 					} else {
 						path = subRoutePath + path + "[infiniteLoop]"
 					}
+					if namedTag, ok := GetNamedTag(swag, resource[0]); ok {
+						operation.Tags = append(operation.Tags, namedTag.Name)
+					}
 				}
 			}
 		}
+
+		path = replaceParams(path)
 
 		if _, ok := swag.Paths[path]; !ok {
 			swag.Paths[path] = PathItemStruct{}
