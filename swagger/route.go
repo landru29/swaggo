@@ -93,22 +93,19 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 				operation.Summary = strings.Join(title, " ")
 			}
 
-			produces := descriptor.GetFields(comments, "Produces")
-			if len(produces) > 0 {
+			if produces := descriptor.GetFields(comments, "Produces"); len(produces) > 0 {
 				operation.Produces = []string{}
 				for _, produce := range produces {
 					operation.Produces = append(operation.Produces, strings.Join(produce, " "))
 				}
 			}
-			consumes := descriptor.GetFields(comments, "Accept")
-			if len(consumes) > 0 {
+			if consumes := descriptor.GetFields(comments, "Accept"); len(consumes) > 0 {
 				operation.Consumes = []string{}
 				for _, consume := range consumes {
 					operation.Consumes = append(operation.Consumes, strings.Join(consume, " "))
 				}
 			}
-			params := descriptor.GetFields(comments, "Param")
-			if len(params) > 0 {
+			if params := descriptor.GetFields(comments, "Param"); len(params) > 0 {
 				operation.Parameters = []ParameterStruct{}
 				for _, param := range params {
 					if len(param) > 3 {
@@ -125,6 +122,28 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 				}
 			}
 
+			if success := descriptor.GetFields(comments, "Success"); len(success) > 0 {
+				operation.Responses = ResponsesStruct{}
+				for _, resp := range success {
+					name := resp[0]
+					operation.Responses[name] = ResponseStruct{
+						Description: resp[len(resp)-1],
+					}
+				}
+			}
+
+			if failure := descriptor.GetFields(comments, "Failure"); len(failure) > 0 {
+				if operation.Responses == nil {
+					operation.Responses = ResponsesStruct{}
+				}
+				for _, resp := range failure {
+					name := resp[0]
+					operation.Responses[name] = ResponseStruct{
+						Description: resp[len(resp)-1],
+					}
+				}
+			}
+
 			if verbose {
 				fmt.Printf("    * Title: %s\n", operation.Summary)
 				fmt.Printf("    * Description: %s\n", operation.Description)
@@ -132,6 +151,9 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 				fmt.Printf("    * consumes: %v\n", operation.Consumes)
 				for _, param := range operation.Parameters {
 					fmt.Printf("    * Parameter: [%s] in (%s) type {%s}\n", param.Name, param.In, param.Type)
+				}
+				for index, resp := range operation.Responses {
+					fmt.Printf("    * Response: [%s] %s\n", index, resp.Description)
 				}
 			}
 
