@@ -42,7 +42,7 @@ func replaceParams(in string) (out string) {
 func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 	if router, ok := descriptor.GetField(comments, "Router"); ok {
 
-		if len(router) < 2 {
+		if len(router) < 1 {
 			return
 		}
 		method, _, elts, hasRouter := descriptor.DescID(router)
@@ -50,7 +50,10 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 			return
 		}
 
-		path := elts[0]
+		path := ""
+		if len(router) > 1 {
+			path = elts[0]
+		}
 
 		var operation OperationStruct
 		operation = OperationStruct{}
