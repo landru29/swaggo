@@ -8,7 +8,7 @@ import (
 )
 
 // GeneralInformations retrieves general informations
-func (swag *Swagger) GeneralInformations(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
+func GeneralInformations(swag *Swagger, fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	if APITitle, ok := descriptor.GetField(fileAnalyze.FileComments, "APITitle"); ok {
 		if verbose {
 			fmt.Printf("# GENERAL INFORMATION [%s]\n", fileAnalyze.Filename)
@@ -60,5 +60,4 @@ func (swag *Swagger) GeneralInformations(fileAnalyze *descriptor.FileAnalyze, ve
 		}
 	}
 
-	swag.Paths = make(PathsStruct)
 }

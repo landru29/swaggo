@@ -16,14 +16,14 @@ import (
 
 // GetSubRoute search for new routes
 // TODO: tool to search resource
-func (swag *Swagger) GetSubRoute(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
+func GetSubRoute(swag *Swagger, fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	for _, block := range fileAnalyze.BlockComments {
-		swag.oneSubRoute(block, verbose)
+		oneSubRoute(swag, block, verbose)
 	}
 }
 
 // CompileSubRoutes build a structure with sub-routes
-func (swag *Swagger) CompileSubRoutes(verbose bool) {
+func CompileSubRoutes(swag *Swagger, verbose bool) {
 	if verbose {
 		fmt.Printf("# COMPILE SUB-ROUTES\n")
 	}
@@ -97,7 +97,7 @@ func (tag *TagStruct) GetPath() (path string, err error) {
 	return
 }
 
-func (swag *Swagger) oneSubRoute(comments []string, verbose bool) {
+func oneSubRoute(swag *Swagger, comments []string, verbose bool) {
 	tag := new(TagStruct)
 	subAPI := descriptor.GetFields(comments, "SubApi")
 	if len(subAPI) == 0 {

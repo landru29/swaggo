@@ -13,8 +13,9 @@ func getFileList(searchDir string) (fileList []string, err error) {
 	fileList = []string{}
 	var goFileRegExp = regexp.MustCompile(`\.go$`)
 	var notHiddentDirRegExp = regexp.MustCompile(`\/\.\w+|^\.\w+`)
+	var vendorRegExp = regexp.MustCompile(`\/vendor\/`)
 	err = filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && goFileRegExp.MatchString(f.Name()) && !notHiddentDirRegExp.MatchString(path) {
+		if !f.IsDir() && goFileRegExp.MatchString(f.Name()) && !notHiddentDirRegExp.MatchString(path) && !vendorRegExp.MatchString(path) {
 			fileList = append(fileList, path)
 		}
 		return nil
@@ -29,14 +30,15 @@ func ProcessProject(searchDir string, host string, basePath string, schemes []st
 	if err == nil {
 		for _, filename := range filenames {
 			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
-				swag.GeneralInformations(&fileAnalyze, verbose)
-				swag.GetSubRoute(&fileAnalyze, verbose)
+				GeneralInformations(&swag, &fileAnalyze, verbose)
+				GetSubRoute(&swag, &fileAnalyze, verbose)
+				GetDefinitions(&swag, &fileAnalyze, verbose)
 			}
 		}
-		swag.CompileSubRoutes(verbose)
+		CompileSubRoutes(&swag, verbose)
 		for _, filename := range filenames {
 			if fileAnalyze, err := descriptor.ParseComments(filename); err == nil {
-				swag.Route(&fileAnalyze, verbose)
+				Route(&swag, &fileAnalyze, verbose)
 			}
 		}
 	}

@@ -19,9 +19,9 @@ import (
 // @Router /:userId.json [get]
 
 // Route search for new routes
-func (swag *Swagger) Route(fileAnalyze *descriptor.FileAnalyze, verbose bool) {
+func Route(swag *Swagger, fileAnalyze *descriptor.FileAnalyze, verbose bool) {
 	for _, block := range fileAnalyze.BlockComments {
-		swag.oneRoute(block, verbose)
+		oneRoute(swag, block, verbose)
 	}
 }
 
@@ -39,7 +39,7 @@ func replaceParams(in string) (out string) {
 	return
 }
 
-func (swag *Swagger) oneRoute(comments []string, verbose bool) {
+func oneRoute(swag *Swagger, comments []string, verbose bool) {
 	if router, ok := descriptor.GetField(comments, "Router"); ok {
 
 		if len(router) < 1 {
@@ -126,24 +126,39 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 			}
 
 			if success := descriptor.GetFields(comments, "Success"); len(success) > 0 {
-				operation.Responses = ResponsesStruct{}
+				operation.Responses = make(map[string]ResponseStruct)
 				for _, resp := range success {
 					name := resp[0]
-					operation.Responses[name] = ResponseStruct{
+					response := ResponseStruct{
 						Description: resp[len(resp)-1],
 					}
+					braces := getInBrace(resp)
+					if len(braces) > 0 && braces[0] != "object" {
+						response.Schema = SchemaStruct{
+							Ref: "#/definitions/" + TransformStructureName(braces[0]),
+						}
+					}
+					operation.Responses[name] = response
 				}
 			}
 
 			if failure := descriptor.GetFields(comments, "Failure"); len(failure) > 0 {
 				if operation.Responses == nil {
-					operation.Responses = ResponsesStruct{}
+					operation.Responses = make(map[string]ResponseStruct)
 				}
 				for _, resp := range failure {
 					name := resp[0]
-					operation.Responses[name] = ResponseStruct{
+					response := ResponseStruct{
 						Description: resp[len(resp)-1],
 					}
+
+					braces := getInBrace(resp)
+					if len(braces) > 0 && braces[0] != "object" {
+						response.Schema = SchemaStruct{
+							Ref: "#/definitions/" + TransformStructureName(braces[0]),
+						}
+					}
+					operation.Responses[name] = response
 				}
 			}
 
@@ -163,4 +178,16 @@ func (swag *Swagger) oneRoute(comments []string, verbose bool) {
 			swag.Paths[path][method] = operation
 		}
 	}
+}
+
+func getInBrace(data []string) []string {
+	result := []string{}
+	re := regexp.MustCompile(`\{([^}]*)\}`)
+	for _, word := range data {
+		matcher := re.FindAllStringSubmatch(word, -1)
+		if len(matcher) > 0 {
+			result = append(result, matcher[0][1])
+		}
+	}
+	return result
 }

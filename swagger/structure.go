@@ -4,22 +4,22 @@ package swagger
 
 //Swagger is the swagger structure
 type Swagger struct {
-	Consumes            []string                  `json:"consumes,omitempty"`
-	Produces            []string                  `json:"produces,omitempty"`
-	Schemes             []string                  `json:"schemes,omitempty"`
-	Swagger             string                    `json:"swagger,omitempty"`
-	Host                string                    `json:"host,omitempty"`
-	BasePath            string                    `json:"basePath,omitempty"`
-	Info                InfoStruct                `json:"info,omitempty"`
-	Paths               PathsStruct               `json:"paths,omitempty"`
-	Definitions         DefinitionsStruct         `json:"definitions,omitempty"`
-	Parameters          []ParameterStruct         `json:"parameters,omitempty"`
-	Responses           ResponsesStruct           `json:"responses,omitempty"`
-	Tags                []*TagStruct              `json:"tags,omitempty"`
-	AllSubRoutes        []*TagStruct              `json:"-"`
-	ExternalDocs        ExternalDocsStruct        `json:"externalDocs,omitempty"`
-	SecurityDefinitions SecurityDefinitionsStruct `json:"securityDefinitions,omitempty"`
-	Security            []SecurityStruct          `json:"security,omitempty"`
+	Consumes            []string                    `json:"consumes,omitempty"`
+	Produces            []string                    `json:"produces,omitempty"`
+	Schemes             []string                    `json:"schemes,omitempty"`
+	Swagger             string                      `json:"swagger,omitempty"`
+	Host                string                      `json:"host,omitempty"`
+	BasePath            string                      `json:"basePath,omitempty"`
+	Info                InfoStruct                  `json:"info,omitempty"`
+	Paths               map[string]PathItemStruct   `json:"paths,omitempty"`
+	Definitions         map[string]DefinitionStruct `json:"definitions,omitempty"`
+	Parameters          []ParameterStruct           `json:"parameters,omitempty"`
+	Responses           map[string]ResponseStruct   `json:"responses,omitempty"`
+	Tags                []*TagStruct                `json:"tags,omitempty"`
+	AllSubRoutes        []*TagStruct                `json:"-"`
+	ExternalDocs        ExternalDocsStruct          `json:"externalDocs,omitempty"`
+	SecurityDefinitions SecurityDefinitionsStruct   `json:"securityDefinitions,omitempty"`
+	Security            []map[string][]string       `json:"security,omitempty"`
 }
 
 //InfoStruct is the swagger info structure
@@ -32,16 +32,24 @@ type InfoStruct struct {
 	Contact        ContactStruct `json:"contact,omitempty"`
 }
 
-// DefinitionsStruct is the swagger definition structure
-type DefinitionsStruct struct {
+// DefinitionStruct is the swagger definition structure
+type DefinitionStruct struct {
+	Type        string                      `json:"type,omitempty"`
+	Enum        []string                    `json:"enum,omitempty"`
+	Format      string                      `json:"format,omitempty"`
+	Description string                      `json:"description,omitempty"`
+	Items       *DefinitionStruct           `json:"items,omitempty"`
+	Properties  map[string]DefinitionStruct `json:"properties,omitempty"`
+	Ref         string                      `json:"$ref,omitempty"`
+	XML         XMLStruct                   `json:"xml,omitempty"`
 }
 
 // ResponseStruct is the swagger response structure
 type ResponseStruct struct {
-	Description string         `json:"description,omitempty"`
-	Schema      SchemaStruct   `json:"schema,omitempty"`
-	Headers     HeadersStruct  `json:"headers,omitempty"`
-	Examples    ExamplesStruct `json:"examples,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Schema      SchemaStruct             `json:"schema,omitempty"`
+	Headers     map[string]HeaderStruct  `json:"headers,omitempty"`
+	Examples    map[string]ExampleStruct `json:"examples,omitempty"`
 }
 
 // XMLStruct is the swagger xml structure
@@ -85,24 +93,24 @@ type SchemaStruct struct {
 
 // HeaderStruct is the swagger header structure
 type HeaderStruct struct {
-	Description      string        `json:"description,omitempty"`
-	Type             string        `json:"type,omitempty"`
-	Format           string        `json:"format,omitempty"`
-	Items            ItemsStruct   `json:"items,omitempty"`
-	CollectionFormat string        `json:"collectionFormat,omitempty"`
-	Default          interface{}   `json:"default,omitempty"`
-	Maximum          float32       `json:"maximum,omitempty"`
-	ExclusiveMaximum bool          `json:"exclusiveMaximum,omitempty"`
-	Minimum          float32       `json:"minimum,omitempty"`
-	ExclusiveMinimum bool          `json:"exclusiveMinimum,omitempty"`
-	MaxLength        int           `json:"maxLength,omitempty"`
-	MinLength        int           `json:"minLength,omitempty"`
-	Pattern          string        `json:"pattern,omitempty"`
-	MaxItems         int           `json:"maxItems,omitempty"`
-	MinItems         int           `json:"minItems,omitempty"`
-	UniqueItems      bool          `json:"uniqueItems,omitempty"`
-	Enum             []interface{} `json:"enum,omitempty"`
-	MultipleOf       float32       `json:"multipleOf,omitempty"`
+	Description      string                `json:"description,omitempty"`
+	Type             string                `json:"type,omitempty"`
+	Format           string                `json:"format,omitempty"`
+	Items            map[string]ItemStruct `json:"items,omitempty"`
+	CollectionFormat string                `json:"collectionFormat,omitempty"`
+	Default          interface{}           `json:"default,omitempty"`
+	Maximum          float32               `json:"maximum,omitempty"`
+	ExclusiveMaximum bool                  `json:"exclusiveMaximum,omitempty"`
+	Minimum          float32               `json:"minimum,omitempty"`
+	ExclusiveMinimum bool                  `json:"exclusiveMinimum,omitempty"`
+	MaxLength        int                   `json:"maxLength,omitempty"`
+	MinLength        int                   `json:"minLength,omitempty"`
+	Pattern          string                `json:"pattern,omitempty"`
+	MaxItems         int                   `json:"maxItems,omitempty"`
+	MinItems         int                   `json:"minItems,omitempty"`
+	UniqueItems      bool                  `json:"uniqueItems,omitempty"`
+	Enum             []interface{}         `json:"enum,omitempty"`
+	MultipleOf       float32               `json:"multipleOf,omitempty"`
 }
 
 // ExampleStruct is the swagger example structure
@@ -157,37 +165,19 @@ type ParameterStruct struct {
 
 // OperationStruct is the swagger route definition
 type OperationStruct struct {
-	Tags         []string           `json:"tags,omitempty"`
-	Summary      string             `json:"summary,omitempty"`
-	Description  string             `json:"description,omitempty"`
-	ExternalDocs ExternalDocsStruct `json:"externalDocs,omitempty"`
-	OperationID  string             `json:"operationId,omitempty"`
-	Consumes     []string           `json:"consumes,omitempty"`
-	Produces     []string           `json:"produces,omitempty"`
-	Parameters   []ParameterStruct  `json:"parameters,omitempty"`
-	Responses    ResponsesStruct    `json:"responses,omitempty"`
-	Schemes      []string           `json:"schemes,omitempty"`
-	Deprecated   bool               `json:"deprecated,omitempty"`
-	Security     []SecurityStruct   `json:"security,omitempty"`
+	Tags         []string                  `json:"tags,omitempty"`
+	Summary      string                    `json:"summary,omitempty"`
+	Description  string                    `json:"description,omitempty"`
+	ExternalDocs ExternalDocsStruct        `json:"externalDocs,omitempty"`
+	OperationID  string                    `json:"operationId,omitempty"`
+	Consumes     []string                  `json:"consumes,omitempty"`
+	Produces     []string                  `json:"produces,omitempty"`
+	Parameters   []ParameterStruct         `json:"parameters,omitempty"`
+	Responses    map[string]ResponseStruct `json:"responses,omitempty"`
+	Schemes      []string                  `json:"schemes,omitempty"`
+	Deprecated   bool                      `json:"deprecated,omitempty"`
+	Security     []map[string][]string     `json:"security,omitempty"`
 }
 
 // PathItemStruct is the swagger routes list (get => ..., post => ...)
 type PathItemStruct map[string]OperationStruct
-
-// PathsStruct is the swagger path (path => Route)
-type PathsStruct map[string]PathItemStruct
-
-// HeadersStruct is the mapper for headers
-type HeadersStruct map[string]HeaderStruct
-
-// ResponsesStruct is the mapper for responses
-type ResponsesStruct map[string]ResponseStruct
-
-// ExamplesStruct is the mapper for examples
-type ExamplesStruct map[string]ExampleStruct
-
-// ItemsStruct is the mapper for items
-type ItemsStruct map[string]ItemStruct
-
-// SecurityStruct is the swagger security structure
-type SecurityStruct map[string][]string
