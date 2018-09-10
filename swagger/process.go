@@ -24,7 +24,7 @@ func getFileList(searchDir string) (fileList []string, err error) {
 }
 
 // ProcessProject is the main processor
-func ProcessProject(searchDir string, host string, basePath string, schemes []string, verbose bool) (err error) {
+func ProcessProject(searchDir string, host string, basePath string, schemes []string, verbose bool, filename string) (err error) {
 	swag := NewSwagger(host, basePath, schemes, verbose)
 	filenames, err := getFileList(searchDir)
 	if err == nil {
@@ -43,6 +43,6 @@ func ProcessProject(searchDir string, host string, basePath string, schemes []st
 		}
 	}
 
-	err = swag.Save()
+	err = swag.Save(filename)
 	return
 }

@@ -36,6 +36,7 @@ func mainApp() (err error) {
 		viper.GetString("api_basepath"),
 		strings.Split(viper.GetString("api_scheme"), ","),
 		viper.GetBool("verbose"),
+		viper.GetString("output"),
 	)
 	return
 }
